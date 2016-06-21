@@ -215,10 +215,17 @@ enum swEvent_type
     SW_EVENT_ERROR = 1u << 11,
 };
 //-------------------------------------------------------------------------------
+// Swoole Server 运行模式
 enum swServer_mode
 {
+	/**
+	 * 传统的异步非阻塞Server。在Reactor内直接回调PHP的函数。如果回调函数中有阻塞操作会导致Server退化为同步模式。worker_num参数对与BASE模式仍然有效，swoole会启动多个Reactor进程
+	 */
     SW_MODE_BASE          =  1,
     SW_MODE_THREAD        =  2,
+	/*
+	 * 多进程模式
+	 */
     SW_MODE_PROCESS       =  3,
     SW_MODE_SINGLE        =  4,
 };
@@ -246,12 +253,28 @@ enum swLog_level
 
 };
 //-------------------------------------------------------------------------------
+// 数据包分发策略 默认为2 固定模式, dispatch_mode=1/3时，底层会屏蔽onConnect/onClose事件，原因是这2种模式下无法保证onConnect/onClose/onReceive的顺序,非请求响应式的服务器程序，请不要使用模式1或3
 enum swFactory_dispatch_mode
 {
+	/*
+	 * 轮循模式，收到会轮循分配给每一个worker进程
+	 */
     SW_DISPATCH_ROUND = 1,
+	/*
+	 * 固定模式，根据连接的文件描述符分配worker。这样可以保证同一个连接发来的数据只会被同一个worker处理
+	 */
     SW_DISPATCH_FDMOD = 2,
+	/*
+	 * 抢占模式，主进程会根据Worker的忙闲状态选择投递，只会投递给处于闲置状态的Worker
+	 */
     SW_DISPATCH_QUEUE = 3,
+	/*
+	 * IP分配，根据客户端IP进行取模hash，分配给一个固定的worker进程。可以保证同一个来源IP的连接数据总会被分配到同一个worker进程。算法为 ip2long(ClientIP) % worker_num
+	 */
     SW_DISPATCH_IPMOD = 4,
+	/*
+	 * UID分配，需要用户代码中调用$serv->bind()将一个连接绑定1个uid。然后swoole根据UID的值分配到不同的worker进程。算法为 UID % worker_num，如果需要使用字符串作为UID，可以使用crc32(UID_STRING)
+	 */
     SW_DISPATCH_UIDMOD = 5,
 };
 
@@ -1758,6 +1781,9 @@ typedef struct
 
     int signal_alarm;  //for timer with message queue
     int signal_fd;
+    /*
+     * Log fd
+     */
     int log_fd;
     int null_fd;
     int debug_fd;
@@ -1769,7 +1795,13 @@ typedef struct
     char *user;
     char *group;
 
+    /*
+     * 日志级别 0-5, 低于log_level设置的日志信息不会抛出
+     */
     uint8_t log_level;
+    /*
+     * 用于存储swoole错误日志文件。在swoole运行期发生的异常信息会记录到这个文件中
+     */
     char *log_file;
 
     /**
@@ -1780,15 +1812,31 @@ typedef struct
      *  task worker process max
      */
     uint8_t task_recycle_num;
+    /*
+     * 用户存储task的数据临时目录
+     */
     char *task_tmpdir;
     uint16_t task_tmpdir_len;
+    /*
+     * Task与Worker进程通信模式 1:使用unix socket通信，默认模式, 2:使用消息队列通信, 3:使用消息队列通信，并设置为争抢模式
+     */
     uint8_t task_ipc_mode;
+    /*
+     * Task 最大请求数
+     */
     uint16_t task_max_request;
 
-    uint16_t cpu_num;
+    uint16_t cpu_num; // CPU 核心数
 
     uint32_t pagesize;
+    /**
+     * 系统每个进程能打开的最多文件数 默认1024
+     */
     uint32_t max_sockets;
+
+    /**
+     * 系统uname 信息
+     */
     struct utsname uname;
 
     /**
@@ -1811,12 +1859,12 @@ typedef struct
 
 typedef struct
 {
-    time_t start_time;
-    sw_atomic_t connection_num;
-    sw_atomic_t accept_count;
-    sw_atomic_t close_count;
-    sw_atomic_t tasking_num;
-    sw_atomic_t request_count;
+    time_t start_time; // 开始时间
+    sw_atomic_t connection_num; // 链接数
+    sw_atomic_t accept_count; // 接收数
+    sw_atomic_t close_count; // 关闭数
+    sw_atomic_t tasking_num; //Task进程处理次数
+    sw_atomic_t request_count; // 请求数
 } swServerStats;
 
 extern swServerG SwooleG;              //Local Global Variable

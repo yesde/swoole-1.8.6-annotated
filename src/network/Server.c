@@ -661,25 +661,28 @@ void swServer_init(swServer *serv)
 {
     swoole_init();
     bzero(serv, sizeof(swServer));
-
+    // 运行模式
     serv->factory_mode = SW_MODE_BASE;
-
+    // reactor_num
     serv->reactor_num = SW_REACTOR_NUM > SW_REACTOR_MAX_THREAD ? SW_REACTOR_MAX_THREAD : SW_REACTOR_NUM;
-
+    // 数据包分发策略 默认为2 固定模式
     serv->dispatch_mode = SW_DISPATCH_FDMOD;
     serv->ringbuffer_size = SW_QUEUE_SIZE;
 
     serv->timeout_sec = SW_REACTOR_TIMEO_SEC;
     serv->timeout_usec = SW_REACTOR_TIMEO_USEC;  //300ms;
-
+    // Worker 进程数 默认为CPU核心数
     serv->worker_num = SW_CPU_NUM;
+    // Server 最大允许连接数为系统最大打开文件数
     serv->max_connection = SwooleG.max_sockets;
+
     serv->max_request = 0;
 
     serv->http_parse_post = 1;
 
-    //heartbeat check
+    //heartbeat check 连接最大允许空闲的时间
     serv->heartbeat_idle_time = SW_HEARTBEAT_IDLE;
+    // 心跳包检测时间
     serv->heartbeat_check_interval = SW_HEARTBEAT_CHECK;
 
     serv->buffer_input_size = SW_BUFFER_INPUT_SIZE;

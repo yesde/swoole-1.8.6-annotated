@@ -390,11 +390,11 @@ void php_swoole_onClose(swServer *, swDataHead *);
 #define php_swoole_array_get_value(ht, str, v)     (sw_zend_hash_find(ht, str, sizeof(str), (void **) &v) == SUCCESS && !ZVAL_IS_NULL(v))
 
 ZEND_BEGIN_MODULE_GLOBALS(swoole)
-    long aio_thread_num;
+    long aio_thread_num; // 异步IO线程数
     zend_bool display_errors;
     zend_bool cli;
     zend_bool use_namespace;
-    key_t message_queue_key;
+    key_t message_queue_key; // 消息队列Key
     uint32_t socket_buffer_size;
 ZEND_END_MODULE_GLOBALS(swoole)
 

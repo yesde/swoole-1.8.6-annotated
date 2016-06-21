@@ -21,8 +21,8 @@
 typedef struct swHashMap_node
 {
     uint64_t key_int;
-    char *key_str;
-    void *data;
+    char *key_str; // Hash Key
+    void *data; // Data
     UT_hash_handle hh;
 } swHashMap_node;
 

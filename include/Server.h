@@ -288,14 +288,17 @@ struct _swServer
 {
     /**
      * reactor thread/process num
+     * Reactor 进程/线程数
      */
     uint16_t reactor_num;
     /**
      * worker process num
+     * Worker 进程数
      */
     uint16_t worker_num;
     /**
      * The number of pipe per reactor maintenance
+     * 每个Reactor 进程/线程的管道数
      */
     uint16_t reactor_pipe_num;
 
@@ -305,19 +308,28 @@ struct _swServer
 
     /**
      * package dispatch mode
+     * 数据从Reactor到Worker进程的分配模式，1:平均分配，2:按FD取摸固定分配，3:使用抢占式队列(IPC消息队列)分配
      */
-    uint8_t dispatch_mode; //分配模式，1平均分配，2按FD取摸固定分配，3,使用抢占式队列(IPC消息队列)分配
+    uint8_t dispatch_mode;
 
+    /*
+     * Worker 进程uid
+     */
     int worker_uid;
+    /*
+	 * Worker 进程groupid
+	 */
     int worker_groupid;
 
     /**
      * max connection num
+     * Swoole Server维持最大的允许连接数,超过的连接最会被拒绝
      */
     uint32_t max_connection;
 
     /**
      * worker process max request
+     * worker进程的最大任务数,一个worker进程在处理完超过此数值的任务后将自动退出。这个参数是为了防止PHP进程内存溢出。
      */
     uint32_t max_request;
 
@@ -344,6 +356,7 @@ struct _swServer
 
     /**
      * run as a daemon process
+     * 是否为守护模式运行
      */
     uint32_t daemonize :1;
     /**
@@ -356,6 +369,7 @@ struct _swServer
     uint32_t have_tcp_sock :1;
     /**
      * oepn cpu affinity setting
+     * 启用CPU亲和性设置,启用此特性会将swoole的reactor线程/worker进程绑定到固定的一个核上。可以避免进程/线程的运行时在多个核之间互相切换，提高CPU Cache的命中率。
      */
     uint32_t open_cpu_affinity :1;
     /**

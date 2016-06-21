@@ -374,6 +374,9 @@ STD_PHP_INI_ENTRY("swoole.message_queue_key", "0", PHP_INI_ALL, OnUpdateString, 
 STD_PHP_INI_ENTRY("swoole.unixsock_buffer_size", "8388608", PHP_INI_ALL, OnUpdateLong, socket_buffer_size, zend_swoole_globals, swoole_globals)
 PHP_INI_END()
 
+/**
+ * 初始化 swoole_globals
+ */
 static void php_swoole_init_globals(zend_swoole_globals *swoole_globals)
 {
     swoole_globals->message_queue_key = 0;
@@ -391,6 +394,7 @@ void swoole_set_object(zval *object, void *ptr)
     int handle = (int) Z_OBJ_HANDLE(*object);
 #endif
     assert(handle < SWOOLE_OBJECT_MAX);
+    // 扩充两倍内存空间
     if (handle >= swoole_objects.size)
     {
         uint32_t old_size = swoole_objects.size;

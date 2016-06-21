@@ -54,12 +54,12 @@ void swoole_init(void)
     SwooleG.running = 1;
     sw_errno = 0;
 
-    SwooleG.log_fd = STDOUT_FILENO;
-    SwooleG.cpu_num = sysconf(_SC_NPROCESSORS_ONLN);
-    SwooleG.pagesize = getpagesize();
-    SwooleG.pid = getpid();
+    SwooleG.log_fd = STDOUT_FILENO; // 标准输出
+    SwooleG.cpu_num = sysconf(_SC_NPROCESSORS_ONLN); // 系统CPU核心数
+    SwooleG.pagesize = getpagesize(); // 内存页
+    SwooleG.pid = getpid(); // 进程ID
 
-    //get system uname
+    //get system uname  系统信息
     uname(&SwooleG.uname);
 
 #if defined(HAVE_REUSEPORT) && defined(HAVE_EPOLL)
@@ -69,10 +69,10 @@ void swoole_init(void)
     }
 #endif
 
-    //random seed
+    //random seed 随机数种子
     srandom(time(NULL));
 
-    //init global shared memory
+    //init global shared memory 初始化全局共享内存池
     SwooleG.memory_pool = swMemoryGlobal_new(SW_GLOBAL_MEMORY_PAGESIZE, 1);
     if (SwooleG.memory_pool == NULL)
     {
@@ -86,13 +86,16 @@ void swoole_init(void)
         exit(2);
     }
 
-    //init global lock
+    //init global lock 初始化互斥锁
     swMutex_create(&SwooleGS->lock, 1);
 
+    /**
+     * 获取系统每个进程能打开的最多文件数
+     */
     if (getrlimit(RLIMIT_NOFILE, &rlmt) < 0)
     {
         swWarn("getrlimit() failed. Error: %s[%d]", strerror(errno), errno);
-        SwooleG.max_sockets = 1024;
+        SwooleG.max_sockets = 1024; // 默认1024
     }
     else
     {
@@ -108,7 +111,7 @@ void swoole_init(void)
 #ifdef HAVE_TIMERFD
     SwooleG.use_timerfd = 1;
 #endif
-
+    // 管道
     SwooleG.use_timer_pipe = 1;
 
     SwooleStats = SwooleG.memory_pool->alloc(SwooleG.memory_pool, sizeof(swServerStats));
@@ -372,6 +375,9 @@ int swoole_system_random(int min, int max)
     return min + (random_value % (max - min + 1));
 }
 
+/**
+ * SwooleGS->now 为当前时间
+ */
 void swoole_update_time(void)
 {
     time_t now = time(NULL);

@@ -1242,12 +1242,12 @@ void php_swoole_onClose(swServer *serv, swDataHead *info)
 PHP_METHOD(swoole_server, __construct)
 {
     zend_size_t host_len = 0;
-    char *serv_host;
-    long sock_type = SW_SOCK_TCP;
-    long serv_port;
-    long serv_mode = SW_MODE_PROCESS;
+    char *serv_host; // host
+    long sock_type = SW_SOCK_TCP; // 默认TCP
+    long serv_port; // port
+    long serv_mode = SW_MODE_PROCESS; // 默认多进程模式
 
-    //only cli env
+    //only cli env Swoole\Server 只能运行在Cli模式下
     if (strcasecmp("cli", sapi_module.name) != 0)
     {
         swoole_php_fatal_error(E_ERROR, "swoole_server must run at php_cli environment.");
